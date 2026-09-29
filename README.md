@@ -1,107 +1,100 @@
 # Nutrition Scanner
 
-A free, open-source nutrition label scanner and meal planner. Take photos of nutrition labels, extract the data with AI, and track your custom nutrition goals — no ads, no subscriptions.
+A free, ad-free web application that allows users to photograph nutrition labels from food products, extract the nutritional information using OCR with AI, and then create custom meal plans with personalized nutrition tracking.
 
 ## Features
 
-- **Photo Capture**: Take or upload photos of nutrition labels from any product
-- **AI-Powered OCR**: Extracts nutrition information using OpenAI-compatible vision models (GPT-4 Vision, etc.)
-- **Multi-Language Support**: Parses labels in German, Dutch, French, Italian, and English
-- **Product Library**: Save scanned products for quick reference
-- **Meal Planner**: Build meals by specifying gram amounts of saved products
-- **Custom Tracking**: Track any nutrients you care about — calories, sodium, saturated fats, or anything else
-- **Data Export/Import**: Backup and restore your data as JSON
+- **Photo-based label scanning**: Take a photo or upload an image of a nutrition label
+- **Multi-language support**: Parses nutrition labels in German, Dutch, French, Italian, and English
+- **AI-powered OCR**: Uses OpenAI-compatible vision models (GPT-4o) to extract text from labels
+- **Nutrient tracking**: Scale nutrients to any serving size and track daily totals
+- **Meal planning**: Build meals from saved products with custom gram amounts
+- **Data export/import**: Backup and restore all your data as JSON
 
-## How It Works
-
-1. **Scan**: Take a photo of a nutrition label or upload an image
-2. **Extract**: AI extracts the raw text from the label
-3. **Parse**: The app identifies nutrients and their values (per 100g, per serving, etc.)
-4. **Save**: Save the product to your library
-5. **Plan**: Add products to a meal with custom gram amounts
-6. **Track**: See the total nutrition for your meal, including any custom metrics
-
-## Setup
+## How to Run
 
 ### Prerequisites
 
-- Node.js 24+
+- Node.js 24+ (for running tests)
 - A modern web browser
-- An OpenAI-compatible API key (e.g., from OpenAI, or any compatible provider)
 
-### Running the App
+### Running the Web App
 
-This is a static web application. You can serve it with any HTTP server:
+Simply open `public/index.html` in a web browser. No server required for basic usage.
+
+For a better experience, serve the files with any static file server:
 
 ```bash
-# Using Python
-python3 -m http.server 8080
-
-# Using Node.js (with http-server)
-npx http-server public -p 8080
-
-# Using any other static file server
+npx serve public
 ```
 
-Then open `http://localhost:8080` in your browser.
+Then open http://localhost:3000
 
-### Configuring the AI Endpoint
-
-1. Open the app in your browser
-2. Go to the **Settings** section
-3. Enter your API endpoint URL (default: `https://api.openai.com/v1/chat/completions`)
-4. Enter your API key
-5. Click **Save Settings**
-
-The app uses the OpenAI-compatible chat completions API with vision support. Any provider that supports this API format should work (OpenAI, Azure OpenAI, local models via Ollama, etc.).
-
-## Testing
+### Running Tests
 
 ```bash
 npm test
 ```
 
-The test suite covers:
-- OCR extraction (with mocked API calls)
-- Nutrition text parsing for multiple languages
+## How to Configure the AI Endpoint
+
+1. Open the app in your browser
+2. Go to the **Settings** section
+3. Enter your API key (e.g., from OpenAI or any OpenAI-compatible provider)
+4. Enter the API URL (default: `https://api.openai.com/v1/chat/completions`)
+5. Click **Save Settings**
+
+The app uses the OpenAI-compatible chat completions endpoint with the `gpt-4o` model. You can use any compatible provider (OpenAI, Azure, local models with Ollama, etc.).
+
+## How to Test
+
+Run the test suite with Node.js:
+
+```bash
+npm test
+```
+
+The tests cover:
+- OCR API integration (with mocked fetch)
+- Nutrition text parsing (German, Dutch, French, Italian, English)
 - Nutrient calculation and scaling
-- Daily total calculation across meal items
-- Storage operations
+- Storage operations (with mock storage)
 - Data export/import
 
-## Architecture
+## What is Not Done Yet
 
-### Source Files
+- **No server-side component**: The app runs entirely in the browser
+- **No authentication**: No user accounts or cloud sync
+- **Limited OCR**: Relies on external AI API; no offline OCR capability
+- **No barcode scanning**: Manual product entry only
+- **No nutritional database**: Products must be scanned from labels
+- **No recipe management**: Only individual product tracking
+- **No mobile app**: Web-only experience
 
-| File | Purpose |
-|------|---------|
-| `src/ocr.js` | Sends images to the AI vision API and returns extracted text |
-| `src/parser.js` | Parses raw OCR text into structured nutrition data |
-| `src/calculator.js` | Scales nutrients and calculates meal totals |
-| `src/storage.js` | localStorage persistence for products, meal plans, and settings |
-| `src/export.js` | JSON export/import of all user data |
-| `public/index.html` | Main HTML page |
-| `public/app.js` | Frontend JavaScript |
-| `public/style.css` | App styling |
+## Project Structure
 
-### Data Storage
-
-All data is stored in the browser's `localStorage`:
-- `product:<id>` — individual product entries
-- `mealplan:<id>` — meal plan entries
-- `settings:default` — API settings and tracked nutrients
-
-## What's Not Done Yet
-
-- **Barcode scanning**: No barcode support yet — only photo-based OCR
-- **Cloud sync**: Data is stored locally only; no cloud backup
-- **Offline AI**: Requires an internet connection for AI processing
-- **Nutrient database**: No built-in food database; you must scan each product
-- **Mobile app**: Web app only; no native iOS/Android app
-- **Recipe sharing**: No social or sharing features
-- **Calorie goals**: No daily calorie or macro targets (yet)
-- **Allergy alerts**: No automatic allergy detection from ingredients
+```
+├── src/
+│   ├── ocr.js          # OCR module - sends image to AI endpoint
+│   ├── parser.js       # Parses OCR text into structured nutrition data
+│   ├── calculator.js   # Scales nutrients and calculates daily totals
+│   ├── storage.js      # localStorage persistence layer
+│   └── export.js       # JSON export/import functionality
+├── public/
+│   ├── index.html      # Main HTML page
+│   ├── app.js          # Frontend application logic
+│   └── style.css       # Styling
+├── tests/
+│   ├── ocr.test.js     # OCR module tests
+│   ├── parser.test.js  # Parser module tests
+│   ├── calculator.test.js  # Calculator module tests
+│   ├── storage.test.js     # Storage module tests
+│   └── export.test.js      # Export/import module tests
+├── docs/
+│   └── SPEC.md         # Product specification
+└── package.json
+```
 
 ## License
 
-Free and open-source. No ads, no tracking, no subscriptions.
+MIT
