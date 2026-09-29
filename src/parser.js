@@ -33,12 +33,10 @@ export function parseNutritionText(text) {
     const headerKeywords = [
       'nährwertdeklaration', 'voedingswaarde', 'valeur nutritionnelle',
       'dichiarazione nutrizionale', 'nutrition facts', 'nährwert',
-      'per 100', 'per 100 g', 'per 100 ml', 'per 100',
+      'per 100', 'per 100 g', 'per 100 ml',
       'energy', 'fett', 'vetten', 'matières grasses', 'grassi',
-      'calories', 'kcal', 'kj', 'proteine', 'proteine', 'protein',
-      'protein', 'protein', 'protein', 'protein', 'protein',
-      'energy', 'energy', 'energy', 'energy', 'energy',
-      'energy', 'energy', 'energy', 'energy', 'energy'
+      'calories', 'kcal', 'kj', 'proteine', 'protein',
+      'glucides', 'carboidrati', 'eiweiß', 'eiwitten', 'sel', 'zout', 'sale'
     ];
     const isHeader = headerKeywords.some(kw => firstLine.includes(kw));
     if (!isHeader && lines.length > 1) {
@@ -55,7 +53,7 @@ export function parseNutritionText(text) {
       result.servingUnit = germanMatch[3];
       continue;
     }
-    // Dutch: "glas (200 ml)" or "per 100 ml"
+    // Dutch: "glas (200 ml)" or "per 100 ml  glas (200 ml)"
     const dutchServingMatch = line.match(/(\w+)\s*\((\d+(?:[.,]\d+)?)\s*(ml|g)\)/i);
     if (dutchServingMatch) {
       result.servingUnit = dutchServingMatch[1];
@@ -148,15 +146,24 @@ export function parseNutritionText(text) {
     const line = lines[i];
     const lowerLine = line.toLowerCase();
 
+    // Skip header lines
+    if (lowerLine.includes('nährwertdeklaration') ||
+        lowerLine.includes('voedingswaarde') ||
+        lowerLine.includes('valeur nutritionnelle') ||
+        lowerLine.includes('dichiarazione nutrizionale') ||
+        lowerLine.includes('nutrition facts')) {
+      continue;
+    }
+
     // Check for energy line (kJ and kcal)
     if (lowerLine.includes('energy') || lowerLine.includes('energie') ||
         lowerLine.includes('énergie') || lowerLine.includes('energia')) {
-      // Try to extract kJ value
-      const kjMatch = line.match(/(\d+(?:[.,]\d+)?)\s*(?:kj|kj\s*\/)/i);
+      // Try to extract kJ value (first number followed by kJ)
+      const kjMatch = line.match(/(\d+(?:[.,]\d+)?)\s*(?:kj)/i);
       if (kjMatch) {
         result.nutrients.energyKj = parseFloat(kjMatch[1].replace(',', '.'));
       }
-      // Try to extract kcal value
+      // Try to extract kcal value (first number followed by kcal)
       const kcalMatch = line.match(/(\d+(?:[.,]\d+)?)\s*(?:kcal)/i);
       if (kcalMatch) {
         result.nutrients.energyKcal = parseFloat(kcalMatch[1].replace(',', '.'));
