@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrition Scanner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>🥗 Nutrition Scanner</h1>
+    <p>Free, no ads. Scan nutrition labels, track your diet.</p>
+  </header>
+
+  <main>
+    <!-- Settings Section -->
+    <section id="settings-section" class="card">
+      <h2>⚙️ Settings</h2>
+      <div class="form-group">
+        <label for="api-url">AI API URL:</label>
+        <input type="url" id="api-url" placeholder="https://api.openai.com/v1/chat/completions">
+      </div>
+      <div class="form-group">
+        <label for="api-key">API Key:</label>
+        <input type="password" id="api-key" placeholder="sk-...">
+      </div>
+      <button id="save-settings-btn">Save Settings</button>
+    </section>
+
+    <!-- Photo Capture Section -->
+    <section id="capture-section" class="card">
+      <h2>📸 Scan Nutrition Label</h2>
+      <div id="camera-container">
+        <button id="take-photo-btn">Take Photo</button>
+        <button id="upload-photo-btn">Upload Photo</button>
+        <input type="file" id="file-input" accept="image/*" capture="environment" hidden>
+      </div>
+      <div id="preview-container" class="hidden">
+        <img id="preview-image" alt="Preview">
+        <button id="scan-btn">Scan with AI</button>
+        <button id="clear-photo-btn">Clear</button>
+      </div>
+      <div id="ocr-result" class="hidden">
+        <h3>Extracted Text:</h3>
+        <pre id="ocr-text"></pre>
+      </div>
+      <div id="parsed-result" class="hidden">
+        <h3>Parsed Nutrition:</h3>
+        <div id="parsed-data"></div>
+        <button id="save-product-btn">Save Product</button>
+      </div>
+    </section>
+
+    <!-- Saved Products Section -->
+    <section id="products-section" class="card">
+      <h2>📦 Saved Products</h2>
+      <div id="products-list"></div>
+    </section>
+
+    <!-- Meal Planner Section -->
+    <section id="meal-section" class="card">
+      <h2>🍽️ Meal Planner</h2>
+      <div id="meal-items"></div>
+      <button id="add-meal-item-btn">+ Add Item</button>
+      <div id="meal-total" class="hidden">
+        <h3>Daily Total:</h3>
+        <div id="meal-total-data"></div>
+      </div>
+    </section>
+
+    <!-- Custom Tracking Section -->
+    <section id="tracking-section" class="card">
+      <h2>📊 Custom Tracking</h2>
+      <div class="form-group">
+        <label for="track-nutrient">Track a nutrient:</label>
+        <input type="text" id="track-nutrient" placeholder="e.g., sodium, saturated fat">
+        <button id="add-track-btn">Add</button>
+      </div>
+      <div id="tracking-list"></div>
+    </section>
+
+    <!-- Export/Import Section -->
+    <section id="data-section" class="card">
+      <h2>💾 Data</h2>
+      <button id="export-btn">Export Data</button>
+      <button id="import-btn">Import Data</button>
+      <input type="file" id="import-file-input" accept=".json" hidden>
+      <div id="import-status"></div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
