@@ -1,19 +1,16 @@
 /**
  * Scale nutrients from serving size to arbitrary gram amounts.
  *
- * @param {object} productNutrients - Nutrient data from parser
- * @param {number|string} servingSize - Serving size (e.g., 30 or "30 g")
+ * @param {object} productNutrients - Nutrient data from parser (flat object)
+ * @param {number} servingSize - Serving size in grams
  * @param {number} grams - Amount in grams to scale to
  * @returns {object} Scaled nutrient values
  */
 export function calculateNutrients(productNutrients, servingSize, grams) {
-  const nutrients = productNutrients.nutrients || {};
-  const servingValue = parseServingSize(servingSize);
-  const scale = grams / servingValue;
-
+  const scale = grams / servingSize;
   const result = {};
 
-  for (const [key, value] of Object.entries(nutrients)) {
+  for (const [key, value] of Object.entries(productNutrients)) {
     if (value !== undefined) {
       result[key] = Math.round(value * scale * 100) / 100;
     }
@@ -43,20 +40,4 @@ export function calculateDailyTotal(mealItems) {
   }
 
   return totals;
-}
-
-/**
- * Parse serving size string or number to a numeric value
- */
-function parseServingSize(servingSize) {
-  if (typeof servingSize === 'number') {
-    return servingSize;
-  }
-  if (typeof servingSize === 'string') {
-    const match = servingSize.match(/(\d+(?:[.,]\d+)?)/);
-    if (match) {
-      return parseFloat(match[1].replace(',', '.'));
-    }
-  }
-  return 100;
 }
