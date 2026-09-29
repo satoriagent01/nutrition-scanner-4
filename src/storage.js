@@ -1,6 +1,6 @@
 /**
  * localStorage persistence for products, meal plans, and settings.
- * Uses localStorage API - only called from browser context.
+ * Functions accept a mockStorage object for testing, or use localStorage in browser.
  */
 
 const STORAGE_KEYS = {
@@ -18,11 +18,13 @@ function generateId() {
 
 /**
  * Save a product
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {object} product - Product data
  * @returns {string} Product ID
  */
-export function saveProduct(product) {
-  const products = getProducts();
+export function saveProduct(mockStorage, product) {
+  const storage = mockStorage || {};
+  const products = getProducts(mockStorage);
   const id = product.id || generateId();
   const productData = {
     id,
@@ -33,47 +35,76 @@ export function saveProduct(product) {
     createdAt: product.createdAt || new Date().toISOString()
   };
 
-  products[id] = productData;
-  localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+  storage[`product:${id}`] = JSON.stringify(productData);
+  if (!mockStorage) {
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(storage));
+  }
   return id;
 }
 
 /**
  * Get all products
- * @returns {object} Products object
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
+ * @returns {Array} Array of products
  */
-export function getProducts() {
-  const data = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-  return data ? JSON.parse(data) : {};
+export function getProducts(mockStorage) {
+  const storage = mockStorage || {};
+  const products = [];
+  for (const key of Object.keys(storage)) {
+    if (key.startsWith('product:')) {
+      try {
+        products.push(JSON.parse(storage[key]));
+      } catch (e) {
+        // skip malformed entries
+      }
+    }
+  }
+  return products;
 }
 
 /**
  * Get a single product by ID
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {string} id - Product ID
  * @returns {object|null} Product data or null
  */
-export function getProduct(id) {
-  const products = getProducts();
-  return products[id] || null;
+export function getProduct(mockStorage, id) {
+  const storage = mockStorage || {};
+  const key = `product:${id}`;
+  if (storage[key]) {
+    try {
+      return JSON.parse(storage[key]);
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
 }
 
 /**
  * Delete a product
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {string} id - Product ID
  */
-export function deleteProduct(id) {
-  const products = getProducts();
-  delete products[id];
-  localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+export function deleteProduct(mockStorage, id) {
+  const storage = mockStorage || {};
+  const key = `product:${id}`;
+  delete storage[key];
+  if (!mockStorage) {
+    const products = getProducts();
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+  }
 }
 
 /**
  * Save a meal plan
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {object} mealPlan - Meal plan data
  * @returns {string} Meal plan ID
  */
-export function saveMealPlan(mealPlan) {
-  const mealPlans = getMealPlans();
+export function saveMealPlan(mockStorage, mealPlan) {
+  const storage = mockStorage || {};
+  const mealPlans = getMealPlans(mockStorage);
   const id = mealPlan.id || generateId();
   const mealPlanData = {
     id,
@@ -83,55 +114,100 @@ export function saveMealPlan(mealPlan) {
     createdAt: mealPlan.createdAt || new Date().toISOString()
   };
 
-  mealPlans[id] = mealPlanData;
-  localStorage.setItem(STORAGE_KEYS.MEAL_PLANS, JSON.stringify(mealPlans));
+  storage[`mealplan:${id}`] = JSON.stringify(mealPlanData);
+  if (!mockStorage) {
+    localStorage.setItem(STORAGE_KEYS.MEAL_PLANS, JSON.stringify(storage));
+  }
   return id;
 }
 
 /**
  * Get all meal plans
- * @returns {object} Meal plans object
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
+ * @returns {Array} Array of meal plans
  */
-export function getMealPlans() {
-  const data = localStorage.getItem(STORAGE_KEYS.MEAL_PLANS);
-  return data ? JSON.parse(data) : {};
+export function getMealPlans(mockStorage) {
+  const storage = mockStorage || {};
+  const mealPlans = [];
+  for (const key of Object.keys(storage)) {
+    if (key.startsWith('mealplan:')) {
+      try {
+        mealPlans.push(JSON.parse(storage[key]));
+      } catch (e) {
+        // skip malformed entries
+      }
+    }
+  }
+  return mealPlans;
 }
 
 /**
  * Get a single meal plan by ID
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {string} id - Meal plan ID
  * @returns {object|null} Meal plan data or null
  */
-export function getMealPlan(id) {
-  const mealPlans = getMealPlans();
-  return mealPlans[id] || null;
+export function getMealPlan(mockStorage, id) {
+  const storage = mockStorage || {};
+  const key = `mealplan:${id}`;
+  if (storage[key]) {
+    try {
+      return JSON.parse(storage[key]);
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
 }
 
 /**
  * Delete a meal plan
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {string} id - Meal plan ID
  */
-export function deleteMealPlan(id) {
-  const mealPlans = getMealPlans();
-  delete mealPlans[id];
-  localStorage.setItem(STORAGE_KEYS.MEAL_PLANS, JSON.stringify(mealPlans));
+export function deleteMealPlan(mockStorage, id) {
+  const storage = mockStorage || {};
+  const key = `mealplan:${id}`;
+  delete storage[key];
+  if (!mockStorage) {
+    const mealPlans = getMealPlans();
+    localStorage.setItem(STORAGE_KEYS.MEAL_PLANS, JSON.stringify(mealPlans));
+  }
 }
 
 /**
  * Save settings
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {object} settings - Settings data
  */
-export function saveSettings(settings) {
-  localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+export function saveSettings(mockStorage, settings) {
+  const storage = mockStorage || {};
+  storage['settings:default'] = JSON.stringify(settings);
+  if (!mockStorage) {
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+  }
 }
 
 /**
  * Get settings
+ * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @returns {object} Settings data
  */
-export function getSettings() {
-  const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-  return data ? JSON.parse(data) : {
+export function getSettings(mockStorage) {
+  const storage = mockStorage || {};
+  const key = 'settings:default';
+  if (storage[key]) {
+    try {
+      return JSON.parse(storage[key]);
+    } catch (e) {
+      return {
+        apiUrl: 'https://api.openai.com/v1',
+        apiKey: '',
+        model: 'gpt-4o'
+      };
+    }
+  }
+  return {
     apiUrl: 'https://api.openai.com/v1',
     apiKey: '',
     model: 'gpt-4o'
@@ -143,8 +219,7 @@ export function getSettings() {
  * @returns {Array} Array of products
  */
 export function getAllProducts() {
-  const products = getProducts();
-  return Object.values(products);
+  return getProducts();
 }
 
 /**
@@ -152,6 +227,5 @@ export function getAllProducts() {
  * @returns {Array} Array of meal plans
  */
 export function getAllMealPlans() {
-  const mealPlans = getMealPlans();
-  return Object.values(mealPlans);
+  return getMealPlans();
 }
