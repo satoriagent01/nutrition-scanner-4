@@ -8,8 +8,8 @@
 </head>
 <body>
   <header>
-    <h1>🥗 Nutrition Scanner</h1>
-    <p>Free, no ads. Scan nutrition labels, track your diet.</p>
+    <h1>🍎 Nutrition Scanner</h1>
+    <p>Scan nutrition labels, track your meals, and stay healthy</p>
   </header>
 
   <main>
@@ -17,75 +17,96 @@
     <section id="settings-section" class="card">
       <h2>⚙️ Settings</h2>
       <div class="form-group">
-        <label for="api-url">AI API URL:</label>
-        <input type="url" id="api-url" placeholder="https://api.openai.com/v1/chat/completions">
+        <label for="api-key">OpenAI-compatible API Key:</label>
+        <input type="password" id="api-key" placeholder="Enter your API key">
       </div>
       <div class="form-group">
-        <label for="api-key">API Key:</label>
-        <input type="password" id="api-key" placeholder="sk-...">
+        <label for="api-url">API Endpoint URL:</label>
+        <input type="text" id="api-url" value="https://api.openai.com/v1/chat/completions" placeholder="https://api.openai.com/v1/chat/completions">
       </div>
-      <button id="save-settings-btn">Save Settings</button>
+      <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
     </section>
 
-    <!-- Photo Capture Section -->
-    <section id="capture-section" class="card">
+    <!-- Scan Section -->
+    <section id="scan-section" class="card">
       <h2>📸 Scan Nutrition Label</h2>
-      <div id="camera-container">
-        <button id="take-photo-btn">Take Photo</button>
-        <button id="upload-photo-btn">Upload Photo</button>
-        <input type="file" id="file-input" accept="image/*" capture="environment" hidden>
+      <div class="form-group">
+        <label for="image-input">Upload or capture a photo:</label>
+        <input type="file" id="image-input" accept="image/*" capture="environment">
       </div>
-      <div id="preview-container" class="hidden">
-        <img id="preview-image" alt="Preview">
-        <button id="scan-btn">Scan with AI</button>
-        <button id="clear-photo-btn">Clear</button>
+      <div id="image-preview-container" class="hidden">
+        <img id="image-preview" alt="Preview">
       </div>
-      <div id="ocr-result" class="hidden">
-        <h3>Extracted Text:</h3>
-        <pre id="ocr-text"></pre>
-      </div>
-      <div id="parsed-result" class="hidden">
-        <h3>Parsed Nutrition:</h3>
-        <div id="parsed-data"></div>
-        <button id="save-product-btn">Save Product</button>
-      </div>
+      <button id="scan-btn" class="btn btn-primary" disabled>Scan Label</button>
+      <div id="scan-status" class="status hidden"></div>
+      <div id="ocr-result" class="result hidden"></div>
     </section>
 
-    <!-- Saved Products Section -->
+    <!-- Parsed Results Section -->
+    <section id="results-section" class="card hidden">
+      <h2>📊 Parsed Nutrition Data</h2>
+      <div id="product-name-display"></div>
+      <div id="serving-info-display"></div>
+      <table id="nutrients-table">
+        <thead>
+          <tr>
+            <th>Nutrient</th>
+            <th>Per Serving</th>
+          </tr>
+        </thead>
+        <tbody id="nutrients-body"></tbody>
+      </table>
+      <button id="save-product-btn" class="btn btn-primary">Save Product</button>
+    </section>
+
+    <!-- Products List -->
     <section id="products-section" class="card">
       <h2>📦 Saved Products</h2>
       <div id="products-list"></div>
     </section>
 
-    <!-- Meal Planner Section -->
+    <!-- Meal Planner -->
     <section id="meal-section" class="card">
       <h2>🍽️ Meal Planner</h2>
-      <div id="meal-items"></div>
-      <button id="add-meal-item-btn">+ Add Item</button>
-      <div id="meal-total" class="hidden">
-        <h3>Daily Total:</h3>
-        <div id="meal-total-data"></div>
-      </div>
-    </section>
-
-    <!-- Custom Tracking Section -->
-    <section id="tracking-section" class="card">
-      <h2>📊 Custom Tracking</h2>
       <div class="form-group">
-        <label for="track-nutrient">Track a nutrient:</label>
-        <input type="text" id="track-nutrient" placeholder="e.g., sodium, saturated fat">
-        <button id="add-track-btn">Add</button>
+        <label for="meal-name">Meal Name:</label>
+        <input type="text" id="meal-name" placeholder="Breakfast, Lunch, Dinner...">
       </div>
-      <div id="tracking-list"></div>
+      <div class="form-group">
+        <label for="meal-product">Select Product:</label>
+        <select id="meal-product">
+          <option value="">-- Select a product --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="meal-grams">Amount (grams):</label>
+        <input type="number" id="meal-grams" placeholder="e.g., 60" min="0">
+      </div>
+      <button id="add-meal-item-btn" class="btn btn-secondary">Add to Meal</button>
+      <div id="meal-items-list"></div>
+      <button id="save-meal-btn" class="btn btn-primary">Save Meal</button>
     </section>
 
-    <!-- Export/Import Section -->
+    <!-- Daily Total -->
+    <section id="daily-section" class="card hidden">
+      <h2>📈 Daily Total</h2>
+      <table id="daily-table">
+        <thead>
+          <tr>
+            <th>Nutrient</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="daily-body"></tbody>
+      </table>
+    </section>
+
+    <!-- Export/Import -->
     <section id="data-section" class="card">
-      <h2>💾 Data</h2>
-      <button id="export-btn">Export Data</button>
-      <button id="import-btn">Import Data</button>
-      <input type="file" id="import-file-input" accept=".json" hidden>
-      <div id="import-status"></div>
+      <h2>💾 Data Management</h2>
+      <button id="export-btn" class="btn btn-secondary">Export Data</button>
+      <button id="import-btn" class="btn btn-secondary">Import Data</button>
+      <div id="import-result" class="status hidden"></div>
     </section>
   </main>
 
