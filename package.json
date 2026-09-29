@@ -1,0 +1,9 @@
+{
+  "name": "nutrition-scanner-4",
+  "version": "1.0.0",
+  "description": "Nutrition label scanner and meal planner",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
