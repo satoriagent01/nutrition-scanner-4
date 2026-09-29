@@ -104,27 +104,32 @@ export function parseNutritionText(text) {
   }
 
   // Parse serving size from header line
+  let servingLineFound = false;
   for (const line of lines) {
     const lowerLine = line.toLowerCase().trim();
     if (nutritionKeywords.some(kw => lowerLine.includes(kw))) {
       // Look for serving info on this line or next line
-      // Patterns: "30 g = 1 Melto", "glas (200 ml)", "Per 30 g", "Par part (30 g)", "Per porzione (30 g)"
+      // Patterns: "30 g = 1 Melto", "glas (200 ml)", "Per 30 g", "Pour 30 g", "Per 100 g"
       const servingMatch = line.match(/(\d+(?:[.,]\d+)?)\s*(g|ml)\s*=\s*(\d+)\s*(\w+)/i);
       if (servingMatch) {
         result.servingSize = servingMatch[1] + ' ' + servingMatch[2];
         result.servingUnit = servingMatch[4];
+        servingLineFound = true;
       } else {
-        // Try "Per X g" or "Par X g" or "Per X ml"
-        const perMatch = line.match(/per\s+(\d+(?:[.,]\d+)?)\s*(g|ml)/i);
-        if (perMatch) {
-          result.servingSize = perMatch[1] + ' ' + perMatch[2];
-          result.servingUnit = perMatch[2];
-        }
         // Try "(200 ml)" or "(30 g)" pattern
         const parenMatch = line.match(/\((\d+(?:[.,]\d+)?)\s*(g|ml)\)/i);
         if (parenMatch) {
           result.servingSize = parenMatch[1] + ' ' + parenMatch[2];
           result.servingUnit = parenMatch[2];
+          servingLineFound = true;
+        } else {
+          // Try "Per X g" or "Par X g" or "Per X ml"
+          const perMatch = line.match(/per\s+(\d+(?:[.,]\d+)?)\s*(g|ml)/i);
+          if (perMatch) {
+            result.servingSize = perMatch[1] + ' ' + perMatch[2];
+            result.servingUnit = perMatch[2];
+            servingLineFound = true;
+          }
         }
       }
       break;
