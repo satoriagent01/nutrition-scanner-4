@@ -30,9 +30,17 @@ export function parseNutritionText(text) {
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
 
+  // Helper to normalize strings for comparison (remove diacritics)
+  function normalize(str) {
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  }
+
   // Try to extract product name from the first line if it's not a header
   if (lines.length > 0) {
-    const firstLine = lines[0].toLowerCase();
+    const normalizedFirst = normalize(lines[0]);
     const headerKeywords = [
       "nahrwertdeklaration",
       "nahrwert",
@@ -41,6 +49,7 @@ export function parseNutritionText(text) {
       "dichiarazione nutrizionale",
       "nutrition facts",
       "per 100",
+      "pour 100",
       "energy",
       "fett",
       "vetten",
@@ -61,7 +70,7 @@ export function parseNutritionText(text) {
       "vegan",
       "vegetarisch",
     ];
-    const isHeader = headerKeywords.some((kw) => firstLine.includes(kw));
+    const isHeader = headerKeywords.some((kw) => normalizedFirst.includes(kw));
     if (!isHeader && lines.length > 1) {
       result.productName = lines[0];
     }
@@ -71,7 +80,9 @@ export function parseNutritionText(text) {
   for (const line of lines) {
     // German: "100 g    30 g = 1 Melto"
     // We want: servingSize = "30 g", servingUnit = "Melto"
-    const germanMatch = line.match(/(\d+(?:[.,]\d+)?)\s*g\s*=\s*(\d+(?:[.,]\d+)?)\s*(\w+)/i);
+    const germanMatch = line.match(
+      /(\d+(?:[.,]\d+)?)\s*g\s*=\s*(\d+(?:[.,]\d+)?)\s*(\w+)/i
+    );
     if (germanMatch) {
       // germanMatch[1] = value before g (e.g., "30"), germanMatch[2] = value after = (e.g., "1"), germanMatch[3] = unit name (e.g., "Melto")
       result.servingSize = `${germanMatch[1]} g`;
