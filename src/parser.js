@@ -27,52 +27,54 @@ export function parseNutritionText(text) {
 
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
-  // Try to extract product name from first line (before known header keywords)
-  const headerKeywords = [
-    'nährwertdeklaration', 'nährwertangaben', 'voedingswaarde', 'valeur nutritionnelle',
-    'dichiarazione nutrizionale', 'nutrition facts', 'nutrition information',
-    'nährwerttabelle', 'voedingsinformatie', 'tableau nutritionnel',
-    'tabella nutrizionale', 'nutrition table'
-  ];
-
-  for (let i = 0; i < Math.min(lines.length, 3); i++) {
-    const lower = lines[i].toLowerCase();
-    const isHeader = headerKeywords.some(kw => lower.includes(kw));
-    if (!isHeader && lines[i].length > 2 && lines[i].length < 100) {
-      // Check if it looks like a product name (not a number line)
-      if (!/^\d/.test(lines[i]) && !/^\d/.test(lines[i].replace(/[^a-zA-ZäöüÄÖÜßéèêëàâîôùûçàâèéêëîôùûçç]/g, ''))) {
-        result.productName = lines[i];
-        break;
-      }
+  // Try to extract product name from the first line if it's not a header
+  if (lines.length > 0) {
+    const firstLine = lines[0].toLowerCase();
+    const headerKeywords = [
+      'nährwertdeklaration', 'voedingswaarde', 'valeur nutritionnelle',
+      'dichiarazione nutrizionale', 'nutrition facts', 'nährwert',
+      'per 100', 'per 100 g', 'per 100 ml', 'per 100',
+      'energy', 'fett', 'vetten', 'matières grasses', 'grassi',
+      'calories', 'kcal', 'kj', 'proteine', 'proteine', 'protein',
+      'protein', 'protein', 'protein', 'protein', 'protein',
+      'energy', 'energy', 'energy', 'energy', 'energy',
+      'energy', 'energy', 'energy', 'energy', 'energy'
+    ];
+    const isHeader = headerKeywords.some(kw => firstLine.includes(kw));
+    if (!isHeader && lines.length > 1) {
+      result.productName = lines[0];
     }
   }
 
-  // Try to extract serving size info from header lines
-  for (let i = 0; i < Math.min(lines.length, 5); i++) {
-    const line = lines[i];
-
-    // Look for serving size patterns like "30 g = 1 Melto" or "glas (200 ml)"
-    const servingMatch = line.match(/(\d+(?:[.,]\d+)?)\s*(g|ml|kg|l)\s*(?:=\s*(.+?))?(?:\s*=\s*(.+?))?$/);
-    if (servingMatch) {
-      const size = servingMatch[1].replace(',', '.');
-      const unit = servingMatch[2];
-      const extra = servingMatch[3] || servingMatch[4] || '';
-      result.servingSize = `${size} ${unit}`;
-      if (extra) {
-        result.servingUnit = extra.trim();
-      } else {
-        result.servingUnit = unit;
-      }
-      break;
+  // Try to extract serving info from header lines
+  for (const line of lines) {
+    // German: "100 g    30 g = 1 Melto"
+    const germanMatch = line.match(/(\d+(?:[.,]\d+)?)\s*g\s*=\s*(\d+(?:[.,]\d+)?)\s*(\w+)/i);
+    if (germanMatch) {
+      result.servingSize = `${germanMatch[2]} g`;
+      result.servingUnit = germanMatch[3];
+      continue;
     }
-
-    // Look for "per X unit" patterns
-    const perMatch = line.match(/(?:per|pour|per|pro|pro|pro)\s+(\d+(?:[.,]\d+)?)\s*(g|ml)/i);
+    // Dutch: "glas (200 ml)" or "per 100 ml"
+    const dutchServingMatch = line.match(/(\w+)\s*\((\d+(?:[.,]\d+)?)\s*(ml|g)\)/i);
+    if (dutchServingMatch) {
+      result.servingUnit = dutchServingMatch[1];
+      result.servingSize = `${dutchServingMatch[2]} ${dutchServingMatch[3]}`;
+      continue;
+    }
+    // "per 100 ml" or "per 100 g"
+    const perMatch = line.match(/per\s+(\d+(?:[.,]\d+)?)\s*(ml|g)/i);
     if (perMatch) {
-      const size = perMatch[1].replace(',', '.');
-      const unit = perMatch[2];
-      result.servingSize = `${size} ${unit}`;
-      result.servingUnit = unit;
+      result.servingSize = `${perMatch[1]} ${perMatch[2]}`;
+      result.servingUnit = perMatch[2];
+      continue;
+    }
+    // "Pour 100 g  Pour 30 g" or "Per 100 g  Per 30 g"
+    const pourMatch = line.match(/(?:pour|per)\s+(\d+(?:[.,]\d+)?)\s*(g|ml)/i);
+    if (pourMatch && !line.match(/=\s*\d+/)) {
+      result.servingSize = `${pourMatch[1]} ${pourMatch[2]}`;
+      result.servingUnit = pourMatch[2];
+      continue;
     }
   }
 
@@ -86,6 +88,7 @@ export function parseNutritionText(text) {
     'davon zucker': 'sugars',
     'ballaststoffe': 'fiber',
     'eiweiß': 'protein',
+    'eiweiss': 'protein',
     'salz': 'salt',
     // Dutch
     'vetten': 'fat',
@@ -99,10 +102,13 @@ export function parseNutritionText(text) {
     // French
     'matières grasses': 'fat',
     'dont acides gras saturés': 'saturatedFat',
+    'dont acides gras saturées': 'saturatedFat',
     'glucides': 'carbohydrates',
     'dont sucres': 'sugars',
     'fibres alimentaires': 'fiber',
+    'fibres': 'fiber',
     'protéines': 'protein',
+    'proteines': 'protein',
     'sel': 'salt',
     // Italian
     'grassi': 'fat',
@@ -115,89 +121,88 @@ export function parseNutritionText(text) {
     // English
     'fat': 'fat',
     'of which saturates': 'saturatedFat',
+    'of which saturated': 'saturatedFat',
     'saturates': 'saturatedFat',
+    'saturated fat': 'saturatedFat',
     'carbohydrate': 'carbohydrates',
+    'carbohydrates': 'carbohydrates',
     'of which sugars': 'sugars',
+    'of which sugar': 'sugars',
     'sugars': 'sugars',
+    'sugar': 'sugars',
     'fibre': 'fiber',
     'fiber': 'fiber',
     'protein': 'protein',
+    'proteins': 'protein',
     'salt': 'salt',
     'sodium': 'salt',
     // Energy
-    'energie': 'energy',
     'energy': 'energy',
-    'calories': 'energy',
-    'calorific': 'energy',
+    'energie': 'energy',
+    'énergie': 'energy',
+    'energia': 'energy',
   };
-
-  // Parse nutrient values from lines
-  // First, determine if we have a two-column format (per 100g and per serving)
-  // or a single-column format (per 100g only)
-  let hasTwoColumns = false;
-  let firstNutrientLine = null;
-
-  for (const line of lines) {
-    // Check if line has two numeric values (two-column format)
-    const values = extractValues(line);
-    if (values.length >= 2) {
-      // Check if it looks like a nutrient line (has a known nutrient keyword)
-      const lowerLine = line.toLowerCase();
-      const isNutrient = Object.keys(nutrientMap).some(kw => lowerLine.includes(kw));
-      if (isNutrient) {
-        hasTwoColumns = true;
-        firstNutrientLine = line;
-        break;
-      }
-    }
-  }
 
   // Parse each line for nutrient values
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const lowerLine = line.toLowerCase();
 
-    // Skip header lines
-    if (headerKeywords.some(kw => lowerLine.includes(kw))) continue;
-
-    // Check for energy line (can be on one line or two)
-    if (lowerLine.includes('energy') || lowerLine.includes('energie') || lowerLine.includes('calories')) {
-      // Check if next line is also energy (kcal line)
-      if (lowerLine.includes('kj')) {
-        const values = extractValues(line);
-        if (values.length >= 1) {
-          result.nutrients.energyKj = parseFloat(values[0].replace(',', '.'));
-        }
+    // Check for energy line (kJ and kcal)
+    if (lowerLine.includes('energy') || lowerLine.includes('energie') ||
+        lowerLine.includes('énergie') || lowerLine.includes('energia')) {
+      // Try to extract kJ value
+      const kjMatch = line.match(/(\d+(?:[.,]\d+)?)\s*(?:kj|kj\s*\/)/i);
+      if (kjMatch) {
+        result.nutrients.energyKj = parseFloat(kjMatch[1].replace(',', '.'));
       }
-      if (lowerLine.includes('kcal')) {
-        const values = extractValues(line);
-        if (values.length >= 1) {
-          result.nutrients.energyKcal = parseFloat(values[0].replace(',', '.'));
-        }
+      // Try to extract kcal value
+      const kcalMatch = line.match(/(\d+(?:[.,]\d+)?)\s*(?:kcal)/i);
+      if (kcalMatch) {
+        result.nutrients.energyKcal = parseFloat(kcalMatch[1].replace(',', '.'));
       }
       continue;
     }
 
-    // Check for kcal line that might be continuation of energy
-    if (lowerLine.includes('kcal') && !lowerLine.includes('kj')) {
-      // This is likely the kcal continuation line
-      const values = extractValues(line);
-      if (values.length >= 1) {
-        result.nutrients.energyKcal = parseFloat(values[0].replace(',', '.'));
+    // Check for continuation line (kcal on second line of energy)
+    if (lowerLine.match(/^\d+\s*kcal/) && result.nutrients.energyKj !== undefined && result.nutrients.energyKcal === undefined) {
+      const kcalMatch = line.match(/(\d+(?:[.,]\d+)?)\s*(?:kcal)/i);
+      if (kcalMatch) {
+        result.nutrients.energyKcal = parseFloat(kcalMatch[1].replace(',', '.'));
       }
       continue;
     }
 
     // Check for other nutrients
     for (const [keyword, nutrientKey] of Object.entries(nutrientMap)) {
-      if (keyword === 'energy') continue; // already handled
       if (lowerLine.includes(keyword)) {
-        const values = extractValues(line);
-        if (values.length >= 1) {
-          const val = parseFloat(values[0].replace(',', '.'));
-          if (!isNaN(val)) {
-            result.nutrients[nutrientKey] = val;
+        // Skip if this is a sub-item line starting with "-"
+        if (line.trim().startsWith('-')) {
+          // Check if it's a sub-item of a known nutrient
+          if (lowerLine.includes('verzadigde vetzuren')) {
+            const val = extractValue(line);
+            if (val !== null && result.nutrients.saturatedFat === undefined) {
+              result.nutrients.saturatedFat = val;
+            }
+          } else if (lowerLine.includes('suikers')) {
+            const val = extractValue(line);
+            if (val !== null && result.nutrients.sugars === undefined) {
+              result.nutrients.sugars = val;
+            }
+          } else if (lowerLine.includes('vezels')) {
+            const val = extractValue(line);
+            if (val !== null && result.nutrients.fiber === undefined) {
+              result.nutrients.fiber = val;
+            }
+          } else if (lowerLine.includes('zoetstoffen')) {
+            // sweeteners - skip
           }
+          continue;
+        }
+
+        const val = extractValue(line);
+        if (val !== null) {
+          result.nutrients[nutrientKey] = val;
         }
         break;
       }
@@ -208,18 +213,29 @@ export function parseNutritionText(text) {
 }
 
 /**
- * Extract numeric values from a line of text.
- * Handles comma as decimal separator.
- * @param {string} line
- * @returns {string[]} Array of numeric value strings
+ * Extract a numeric value from a line, handling comma as decimal separator
  */
-function extractValues(line) {
-  const values = [];
-  // Match numbers with optional comma decimals, followed by optional unit
-  const regex = /(\d+(?:[.,]\d+)?)/g;
-  let match;
-  while ((match = regex.exec(line)) !== null) {
-    values.push(match[1]);
+function extractValue(line) {
+  // Remove leading dashes and whitespace
+  const cleaned = line.replace(/^[-\s]+/, '').trim();
+
+  // Try to find a number followed by 'g' or 'ml'
+  const match = cleaned.match(/(\d+(?:[.,]\d+)?)\s*(?:g|ml)/i);
+  if (match) {
+    return parseFloat(match[1].replace(',', '.'));
   }
-  return values;
+
+  // Try to find a number followed by kJ or kcal
+  const energyMatch = cleaned.match(/(\d+(?:[.,]\d+)?)\s*(?:kj|kcal)/i);
+  if (energyMatch) {
+    return parseFloat(energyMatch[1].replace(',', '.'));
+  }
+
+  // Try to find a standalone number
+  const numMatch = cleaned.match(/(\d+(?:[.,]\d+)?)/);
+  if (numMatch) {
+    return parseFloat(numMatch[1].replace(',', '.'));
+  }
+
+  return null;
 }
