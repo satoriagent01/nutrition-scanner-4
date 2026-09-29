@@ -7,13 +7,18 @@ import { getProducts, getMealPlans, getSettings } from './storage.js';
 
 /**
  * Export all user data as JSON string
+ * @param {object} mockStorage - Optional mock storage object for testing
  * @returns {string} JSON string of all data
  */
-export function exportData() {
+export function exportData(mockStorage) {
+  const products = getProducts(mockStorage);
+  const mealPlans = getMealPlans(mockStorage);
+  const settings = getSettings(mockStorage);
+
   const data = {
-    products: getProducts(),
-    mealPlans: getMealPlans(),
-    settings: getSettings(),
+    products,
+    mealPlans,
+    settings,
     exportedAt: new Date().toISOString()
   };
 
@@ -23,9 +28,10 @@ export function exportData() {
 /**
  * Import user data from JSON string
  * @param {string} jsonString - JSON string of data
+ * @param {object} mockStorage - Optional mock storage object for testing
  * @returns {boolean} Whether import was successful
  */
-export function importData(jsonString) {
+export function importData(jsonString, mockStorage) {
   try {
     const data = JSON.parse(jsonString);
 
@@ -40,17 +46,29 @@ export function importData(jsonString) {
 
     // Save products
     if (data.products && typeof data.products === 'object') {
-      localStorage.setItem('products', JSON.stringify(data.products));
+      if (mockStorage) {
+        mockStorage['products'] = JSON.stringify(data.products);
+      } else {
+        localStorage.setItem('products', JSON.stringify(data.products));
+      }
     }
 
     // Save meal plans
     if (data.mealPlans && typeof data.mealPlans === 'object') {
-      localStorage.setItem('mealPlans', JSON.stringify(data.mealPlans));
+      if (mockStorage) {
+        mockStorage['mealPlans'] = JSON.stringify(data.mealPlans);
+      } else {
+        localStorage.setItem('mealPlans', JSON.stringify(data.mealPlans));
+      }
     }
 
     // Save settings
     if (data.settings && typeof data.settings === 'object') {
-      localStorage.setItem('settings', JSON.stringify(data.settings));
+      if (mockStorage) {
+        mockStorage['settings'] = JSON.stringify(data.settings);
+      } else {
+        localStorage.setItem('settings', JSON.stringify(data.settings));
+      }
     }
 
     return true;
