@@ -84,16 +84,18 @@ export function getMealPlans(mockStorage) {
  * Save settings
  * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {object} settings - Settings data
+ * @returns {string} Settings key
  */
 export function saveSettings(mockStorage, settings) {
   const storage = mockStorage || {};
   storage['settings:default'] = JSON.stringify(settings);
+  return 'settings:default';
 }
 
 /**
  * Get settings
  * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
- * @returns {object} Settings data
+ * @returns {object} Settings data with defaults
  */
 export function getSettings(mockStorage) {
   const storage = mockStorage || {};
@@ -102,18 +104,13 @@ export function getSettings(mockStorage) {
     try {
       return JSON.parse(storage[key]);
     } catch (e) {
-      return {
-        preferredUnit: 'metric',
-        dailyCalorieGoal: 2000,
-        dailySodiumGoal: 2300,
-        dailyFatGoal: 65,
-      };
+      // return defaults on parse error
     }
   }
   return {
     preferredUnit: 'metric',
     dailyCalorieGoal: 2000,
     dailySodiumGoal: 2300,
-    dailyFatGoal: 65,
+    dailyFatGoal: 65
   };
 }
