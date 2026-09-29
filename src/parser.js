@@ -70,11 +70,11 @@ export function parseNutritionText(text) {
   // Try to extract serving info from header lines
   for (const line of lines) {
     // German: "100 g    30 g = 1 Melto"
-    const germanMatch = line.match(
-      /(\d+(?:[.,]\d+)?)\s*g\s*=\s*(\d+(?:[.,]\d+)?)\s*(\w+)/i
-    );
+    // We want: servingSize = "30 g", servingUnit = "Melto"
+    const germanMatch = line.match(/(\d+(?:[.,]\d+)?)\s*g\s*=\s*(\d+(?:[.,]\d+)?)\s*(\w+)/i);
     if (germanMatch) {
-      result.servingSize = `${germanMatch[2]} g`;
+      // germanMatch[1] = value before g (e.g., "30"), germanMatch[2] = value after = (e.g., "1"), germanMatch[3] = unit name (e.g., "Melto")
+      result.servingSize = `${germanMatch[1]} g`;
       result.servingUnit = germanMatch[3];
       continue;
     }
@@ -170,6 +170,7 @@ export function parseNutritionText(text) {
     "waarvan verzadigde": "saturatedFat",
     "koolhydraten": "carbohydrates",
     "waarvan suikers": "sugars",
+    "suikers": "sugars",
     "waarvan": "sugars",
     "vezels": "fiber",
     "eiwitten": "protein",
@@ -232,12 +233,7 @@ export function parseNutritionText(text) {
       continue;
     }
 
-    // Try to match a nutrient row
-    // Format: "NutrientName  value unit  value unit"
-    // or: "NutrientName  value kJ / value kcal  value kJ / value kcal"
-    // or: "- sub-nutrient  value unit  value unit"
-
-    // First, try to identify the nutrient name
+    // Try to identify the nutrient name
     let matchedNutrient = null;
     let matchedKey = null;
 
@@ -259,14 +255,7 @@ export function parseNutritionText(text) {
     if (!matchedNutrient) continue;
 
     // Extract values from the line
-    // Remove the nutrient name and leading dashes/spaces
     const afterName = strippedLine.substring(matchedNutrient.length).trim();
-
-    // Try to parse values - they can be in various formats:
-    // "  33 g     10 g"
-    // "  2292 kJ  688 kJ"
-    // "  2292 kJ / 549 kcal  688 kJ / 165 kcal"
-    // "  0,7 g  1,4 g"
 
     // First, check if this is an energy line (has kJ and kcal)
     if (matchedKey === "energyKj") {
