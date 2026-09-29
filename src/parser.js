@@ -177,8 +177,9 @@ export function parseNutritionText(text) {
     // Dutch
     "energie": "energyKj",
     "vetten": "fat",
-    "waarvan verzadigde vetzuren": "saturatedFat",
-    "waarvan verzadigde": "saturatedFat",
+    "waarvan verzatigde vetzuren": "saturatedFat",
+    "waarvan verzatigde": "saturatedFat",
+    "verzatigde vetzuren": "saturatedFat",
     "koolhydraten": "carbohydrates",
     "waarvan suikers": "sugars",
     "suikers": "sugars",
