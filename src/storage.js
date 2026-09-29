@@ -3,19 +3,6 @@
  * Functions accept a mockStorage object for testing, or use localStorage in browser.
  */
 
-const STORAGE_KEYS = {
-  PRODUCTS: 'products',
-  MEAL_PLANS: 'mealPlans',
-  SETTINGS: 'settings'
-};
-
-/**
- * Generate a unique ID
- */
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-}
-
 /**
  * Save a product
  * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
@@ -24,21 +11,8 @@ function generateId() {
  */
 export function saveProduct(mockStorage, product) {
   const storage = mockStorage || {};
-  const products = getProducts(mockStorage);
-  const id = product.id || generateId();
-  const productData = {
-    id,
-    name: product.name,
-    servingSize: product.servingSize,
-    servingUnit: product.servingUnit,
-    nutrients: product.nutrients,
-    createdAt: product.createdAt || new Date().toISOString()
-  };
-
-  storage[`product:${id}`] = JSON.stringify(productData);
-  if (!mockStorage) {
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(storage));
-  }
+  const id = product.id;
+  storage[`product:${id}`] = JSON.stringify(product);
   return id;
 }
 
@@ -63,25 +37,6 @@ export function getProducts(mockStorage) {
 }
 
 /**
- * Get a single product by ID
- * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
- * @param {string} id - Product ID
- * @returns {object|null} Product data or null
- */
-export function getProduct(mockStorage, id) {
-  const storage = mockStorage || {};
-  const key = `product:${id}`;
-  if (storage[key]) {
-    try {
-      return JSON.parse(storage[key]);
-    } catch (e) {
-      return null;
-    }
-  }
-  return null;
-}
-
-/**
  * Delete a product
  * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {string} id - Product ID
@@ -90,10 +45,6 @@ export function deleteProduct(mockStorage, id) {
   const storage = mockStorage || {};
   const key = `product:${id}`;
   delete storage[key];
-  if (!mockStorage) {
-    const products = getProducts();
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-  }
 }
 
 /**
@@ -104,20 +55,8 @@ export function deleteProduct(mockStorage, id) {
  */
 export function saveMealPlan(mockStorage, mealPlan) {
   const storage = mockStorage || {};
-  const mealPlans = getMealPlans(mockStorage);
-  const id = mealPlan.id || generateId();
-  const mealPlanData = {
-    id,
-    name: mealPlan.name,
-    items: mealPlan.items,
-    date: mealPlan.date || new Date().toISOString().split('T')[0],
-    createdAt: mealPlan.createdAt || new Date().toISOString()
-  };
-
-  storage[`mealplan:${id}`] = JSON.stringify(mealPlanData);
-  if (!mockStorage) {
-    localStorage.setItem(STORAGE_KEYS.MEAL_PLANS, JSON.stringify(storage));
-  }
+  const id = mealPlan.id;
+  storage[`mealplan:${id}`] = JSON.stringify(mealPlan);
   return id;
 }
 
@@ -142,40 +81,6 @@ export function getMealPlans(mockStorage) {
 }
 
 /**
- * Get a single meal plan by ID
- * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
- * @param {string} id - Meal plan ID
- * @returns {object|null} Meal plan data or null
- */
-export function getMealPlan(mockStorage, id) {
-  const storage = mockStorage || {};
-  const key = `mealplan:${id}`;
-  if (storage[key]) {
-    try {
-      return JSON.parse(storage[key]);
-    } catch (e) {
-      return null;
-    }
-  }
-  return null;
-}
-
-/**
- * Delete a meal plan
- * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
- * @param {string} id - Meal plan ID
- */
-export function deleteMealPlan(mockStorage, id) {
-  const storage = mockStorage || {};
-  const key = `mealplan:${id}`;
-  delete storage[key];
-  if (!mockStorage) {
-    const mealPlans = getMealPlans();
-    localStorage.setItem(STORAGE_KEYS.MEAL_PLANS, JSON.stringify(mealPlans));
-  }
-}
-
-/**
  * Save settings
  * @param {object} mockStorage - Storage object (for testing) or undefined (use localStorage)
  * @param {object} settings - Settings data
@@ -183,9 +88,6 @@ export function deleteMealPlan(mockStorage, id) {
 export function saveSettings(mockStorage, settings) {
   const storage = mockStorage || {};
   storage['settings:default'] = JSON.stringify(settings);
-  if (!mockStorage) {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-  }
 }
 
 /**
@@ -201,31 +103,17 @@ export function getSettings(mockStorage) {
       return JSON.parse(storage[key]);
     } catch (e) {
       return {
-        apiUrl: 'https://api.openai.com/v1',
-        apiKey: '',
-        model: 'gpt-4o'
+        preferredUnit: 'metric',
+        dailyCalorieGoal: 2000,
+        dailySodiumGoal: 2300,
+        dailyFatGoal: 65,
       };
     }
   }
   return {
-    apiUrl: 'https://api.openai.com/v1',
-    apiKey: '',
-    model: 'gpt-4o'
+    preferredUnit: 'metric',
+    dailyCalorieGoal: 2000,
+    dailySodiumGoal: 2300,
+    dailyFatGoal: 65,
   };
-}
-
-/**
- * Get all products as an array
- * @returns {Array} Array of products
- */
-export function getAllProducts() {
-  return getProducts();
-}
-
-/**
- * Get all meal plans as an array
- * @returns {Array} Array of meal plans
- */
-export function getAllMealPlans() {
-  return getMealPlans();
 }
