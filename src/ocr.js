@@ -15,6 +15,7 @@ export async function extractNutritionFromImage(imageBase64, apiUrl, apiKey) {
     },
     body: JSON.stringify({
       model: "gpt-4o",
+      api_key: apiKey,
       messages: [
         {
           role: "user",
